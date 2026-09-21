@@ -1,0 +1,65 @@
+appId: com.example.knucklegame
+---
+- launchApp:
+    clearState: true
+    arguments:
+      maestro_fake: "1"
+      maestro_auto: host
+      maestro_seed: "42"
+      maestro_fast: "1"
+- extendedWaitUntil:
+    visible: FakePeer
+    timeout: 15000
+# Deterministic full game: seeded rolls, no roll delay, bot plays the other side.
+# Inner steps are optional so iterations after the game ends (overlay up, no
+# "Your turn") no-op instead of failing; the final assert is the real verdict.
+# 6 iterations x 3 turns (left/middle/right columns, tapped by label) is ample
+# for a 3x3 board.
+- repeat:
+    times: 6
+    commands:
+      - extendedWaitUntil:
+          visible: Your turn
+          timeout: 30000
+          optional: true
+      - tapOn:
+          text: roll die
+          optional: true
+      - extendedWaitUntil:
+          visible: Drag the die to a column, or tap a column
+          timeout: 15000
+          optional: true
+      - tapOn:
+          text: own column 0
+          optional: true
+      - extendedWaitUntil:
+          visible: Your turn
+          timeout: 30000
+          optional: true
+      - tapOn:
+          text: roll die
+          optional: true
+      - extendedWaitUntil:
+          visible: Drag the die to a column, or tap a column
+          timeout: 15000
+          optional: true
+      - tapOn:
+          text: own column 1
+          optional: true
+      - extendedWaitUntil:
+          visible: Your turn
+          timeout: 30000
+          optional: true
+      - tapOn:
+          text: roll die
+          optional: true
+      - extendedWaitUntil:
+          visible: Drag the die to a column, or tap a column
+          timeout: 15000
+          optional: true
+      - tapOn:
+          text: own column 2
+          optional: true
+- extendedWaitUntil:
+    visible: Play again
+    timeout: 60000
