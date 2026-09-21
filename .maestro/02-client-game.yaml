@@ -1,0 +1,19 @@
+appId: com.example.knucklegame
+---
+- launchApp
+- tapOn:
+    id: "fake-switch"
+- tapOn:
+    id: "name-field"
+- inputText: "Client"
+- tapOn:
+    id: "join-button"
+- assertVisible:
+    id: "device-row"
+- tapOn:
+    id: "device-row"
+- tapOn:
+    id: "pin-input"
+- inputText: "1234"
+- assertVisible:
+    id: "own-board"
