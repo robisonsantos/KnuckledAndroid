@@ -34,6 +34,7 @@ import com.example.knucklegame.ui.components.FeltBackground
 fun KnuckleGameApp(
     connectionViewModel: ConnectionViewModel,
     onHostClick: () -> Unit,
+    onPlayCpuClick: () -> Unit,
     onFindClick: () -> Unit,
     onSubmitPin: (String) -> Unit,
     soundManager: SoundManager = NoopSoundManager,
@@ -108,6 +109,7 @@ fun KnuckleGameApp(
                                     name = connectionViewModel.playerName,
                                     onNameChange = connectionViewModel::onPlayerNameChange,
                                     onHostClick = onHostClick,
+                                    onPlayCpuClick = onPlayCpuClick,
                                     onFindClick = onFindClick,
                                     isFakeMode = connectionViewModel.inFakeMode,
                                     onToggleFake = connectionViewModel::toggleFakeMode,

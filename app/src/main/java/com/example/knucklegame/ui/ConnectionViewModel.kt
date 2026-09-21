@@ -15,7 +15,9 @@ import com.example.knucklegame.bluetooth.DeviceInfo
 import com.example.knucklegame.bluetooth.FakeBluetoothConnector
 import com.example.knucklegame.game.FakeGamePeer
 import com.example.knucklegame.bluetooth.GameLink
+import com.example.knucklegame.bluetooth.LocalConnector
 import com.example.knucklegame.bluetooth.PinGenerator
+import com.example.knucklegame.game.CpuPacing
 import com.example.knucklegame.game.GameMessages
 
 private const val TAG = "KnuckleGame"
@@ -53,6 +55,9 @@ class ConnectionViewModel(application: Application) : AndroidViewModel(applicati
         private set
     var selectedDevice by mutableStateOf<DeviceInfo?>(null)
         private set
+    /** CPU pacing knobs (debug/test overrides, defaults feel human). */
+    var cpuPreRollDelayMs: Long = CpuPacing.PRE_ROLL_MS
+    var cpuThinkDelay: () -> Long = CpuPacing::naturalThink
     var errorText by mutableStateOf<String?>(null)
         private set
     var currentLink by mutableStateOf<GameLink?>(null)
@@ -105,6 +110,34 @@ class ConnectionViewModel(application: Application) : AndroidViewModel(applicati
             }
         }.apply {
             name = "dicegame-listen"
+            isDaemon = true
+            start()
+        }
+    }
+
+    fun startSinglePlayer() {
+        val sanitized = GameMessages.sanitizeName(playerName)
+        if (sanitized.isBlank()) {
+            showError("Enter your name")
+            return
+        }
+        sanitizedPlayerName = sanitized
+        isHost = true
+        errorText = null
+        Thread {
+            try {
+                val connector = LocalConnector(preRollDelayMs = cpuPreRollDelayMs, thinkDelay = cpuThinkDelay)
+                val link = connector.listen("single")
+                main.post { onConnected(link, peer = null, isHost = true) }
+            } catch (t: Throwable) {
+                Log.e(TAG, "single-player start failed", t)
+                main.post {
+                    resetForError()
+                    showError(t.message ?: "Could not start single-player game.")
+                }
+            }
+        }.apply {
+            name = "dicegame-single"
             isDaemon = true
             start()
         }

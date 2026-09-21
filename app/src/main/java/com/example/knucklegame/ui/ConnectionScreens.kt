@@ -65,6 +65,7 @@ fun StartScreen(
     name: String,
     onNameChange: (String) -> Unit,
     onHostClick: () -> Unit,
+    onPlayCpuClick: () -> Unit,
     onFindClick: () -> Unit,
     isFakeMode: Boolean,
     onToggleFake: () -> Unit,
@@ -121,6 +122,12 @@ fun StartScreen(
             ),
         )
         Spacer(Modifier.height(24.dp))
+        GoldButton(
+            text = stringResource(R.string.play_vs_cpu),
+            onClick = onPlayCpuClick,
+            modifier = Modifier.testTag("single-player-button"),
+        )
+        Spacer(Modifier.height(12.dp))
         GoldButton(
             text = stringResource(R.string.host_game),
             onClick = onHostClick,
