@@ -10,18 +10,16 @@ appId: com.example.knucklegame
 - extendedWaitUntil:
     visible: FakePeer
     timeout: 15000
-# Play 3 turns: tap the 3D die to roll, then tap the middle column to place.
-# Points are used because the die (SurfaceView) and board columns expose no text.
+# Play 3 turns: tap the 3D die to roll (point: the SceneView exposes no text),
+# then tap the middle column by its accessibility label.
 - repeat:
     times: 3
     commands:
       - extendedWaitUntil:
           visible: Your turn
           timeout: 30000
-      - tapOn:
-          point: 50%,57%
+      - tapOn: roll die
       - extendedWaitUntil:
           visible: Drag the die to a column, or tap a column
           timeout: 15000
-      - tapOn:
-          point: 50%,78%
+      - tapOn: own column 1
