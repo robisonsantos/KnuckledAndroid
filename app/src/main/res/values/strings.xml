@@ -1,3 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">KnuckleGame</string>
+    <string name="your_name">Your name</string>
+    <string name="host_game">Host a game</string>
+    <string name="join_game">Join a game</string>
+    <string name="fake_link">Fake link</string>
+    <string name="fake_link_on">Debug: using in-process fake Bluetooth. No real devices needed.</string>
+    <string name="fake_link_off">Real Bluetooth mode. Two phones required.</string>
+    <string name="onboarding_hint">Host on one phone, join from the other — first to fill a 3x3 grid wins.</string>
+    <string name="dismiss">Dismiss</string>
+    <string name="cancel">Cancel</string>
+    <string name="pairing_code">Pairing code</string>
+    <string name="waiting_for_device">Waiting for a device…</string>
+    <string name="enter_pin_title">Enter the code shown on the host phone</string>
+    <string name="leave">Leave</string>
+    <string name="play_again">Play again</string>
+    <string name="disconnect">Disconnect</string>
+    <string name="your_turn">Your turn</string>
+    <string name="turn_other">%1$s’s turn</string>
+    <string name="rolling">Rolling…</string>
+    <string name="place_hint">Drag the die to a column, or tap a column</string>
+    <string name="wins">%1$s wins!</string>
+    <string name="you_win">You win!</string>
+    <string name="you_lose">You lost</string>
+    <string name="draw">It’s a draw!</string>
+    <string name="draw_score_banner">%1$d – %2$d</string>
+    <string name="waiting_for_state">Waiting for game state…</string>
+    <string name="mute">Mute</string>
+    <string name="unmute">Unmute</string>
+    <string name="peer_disconnected">Peer disconnected</string>
+    <string name="dice">Dice</string>
+    <string name="column_score">Col %1$d</string>
 </resources>
