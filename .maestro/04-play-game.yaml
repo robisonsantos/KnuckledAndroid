@@ -20,6 +20,6 @@ appId: com.example.knucklegame
           timeout: 30000
       - tapOn: roll die
       - extendedWaitUntil:
-          visible: Drag the die to a column, or tap a column
+          visible: Tap a column to place the die
           timeout: 15000
       - tapOn: own column 1

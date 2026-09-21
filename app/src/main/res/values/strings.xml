@@ -19,7 +19,7 @@
     <string name="your_turn">Your turn</string>
     <string name="turn_other">%1$s’s turn</string>
     <string name="rolling">Rolling…</string>
-    <string name="place_hint">Drag the die to a column, or tap a column</string>
+    <string name="place_hint">Tap a column to place the die</string>
     <string name="wins">%1$s wins!</string>
     <string name="you_win">You win!</string>
     <string name="you_lose">You lost</string>

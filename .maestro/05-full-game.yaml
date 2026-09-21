@@ -26,7 +26,7 @@ appId: com.example.knucklegame
           text: roll die
           optional: true
       - extendedWaitUntil:
-          visible: Drag the die to a column, or tap a column
+          visible: Tap a column to place the die
           timeout: 15000
           optional: true
       - tapOn:
@@ -40,7 +40,7 @@ appId: com.example.knucklegame
           text: roll die
           optional: true
       - extendedWaitUntil:
-          visible: Drag the die to a column, or tap a column
+          visible: Tap a column to place the die
           timeout: 15000
           optional: true
       - tapOn:
@@ -54,7 +54,7 @@ appId: com.example.knucklegame
           text: roll die
           optional: true
       - extendedWaitUntil:
-          visible: Drag the die to a column, or tap a column
+          visible: Tap a column to place the die
           timeout: 15000
           optional: true
       - tapOn:

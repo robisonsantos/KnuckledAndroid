@@ -1,12 +1,12 @@
 package com.example.knucklegame.ui
 
+import android.os.Build
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -40,20 +39,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.boundsInRoot
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.example.knucklegame.R
 import com.example.knucklegame.game.DieRef
@@ -73,7 +65,6 @@ import com.example.knucklegame.ui.theme.GlassWhite
 import com.example.knucklegame.ui.theme.Gold
 import com.example.knucklegame.ui.theme.Ivory
 import kotlinx.coroutines.delay
-import kotlin.math.roundToInt
 
 private const val RESULT_OVERLAY_DELAY_MS = 1_200L
 
@@ -144,9 +135,17 @@ private fun GameScreenContent(
     errorText: String?,
 ) {
     var showResultOverlay by remember { mutableStateOf(false) }
-    // Single shared hit registry: own-board columns register their root bounds
-    // here so the draggable die token can resolve a drop position to a column.
-    val hitRegistry = remember { ColumnHitRegistry() }
+    val context = LocalContext.current
+    LaunchedEffect(state?.currentTurn, state?.status) {
+        if (state?.status == Status.IN_PROGRESS && state.currentTurn == myId) {
+            val vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                context.getSystemService(android.os.VibratorManager::class.java)?.defaultVibrator
+            } else {
+                @Suppress("DEPRECATION") context.getSystemService(android.content.Context.VIBRATOR_SERVICE) as? android.os.Vibrator
+            }
+            try { vibrator?.vibrate(android.os.VibrationEffect.createOneShot(150, android.os.VibrationEffect.DEFAULT_AMPLITUDE)) } catch (_: Exception) {}
+        }
+    }
     LaunchedEffect(state?.status) {
         showResultOverlay = false
         if (state?.status == Status.FINISHED || state?.status == Status.DRAW) {
@@ -184,14 +183,13 @@ private fun GameScreenContent(
             } else {
                 val peerId = state.opponentOf(myId)
                 GameBoard(
-                    isMine = true,
-                    name = state.playerName(myId),
-                    grid = state.grid[myId]!!,
-                    destroyed = state.destroyed.filter { it.player == myId },
-                    active = state.currentTurn == myId && state.status == Status.IN_PROGRESS,
-                    onColumnTap = onPlaceColumn,
-                    modifier = Modifier.testTag("own-board"),
-                    registry = hitRegistry,
+                    isMine = false,
+                    name = state.playerName(peerId),
+                    grid = state.grid[peerId]!!,
+                    destroyed = state.destroyed.filter { it.player == peerId },
+                    active = state.currentTurn == peerId && state.status == Status.IN_PROGRESS,
+                    onColumnTap = null,
+                    modifier = Modifier.testTag("peer-board"),
                 )
                 Spacer(Modifier.height(14.dp))
                 RollArea(
@@ -202,18 +200,16 @@ private fun GameScreenContent(
                     onDiceTap = onDiceTap,
                     onPlaceColumn = onPlaceColumn,
                     peerId = peerId,
-                    registry = hitRegistry,
                 )
                 Spacer(Modifier.height(14.dp))
                 GameBoard(
-                    isMine = false,
-                    name = state.playerName(peerId),
-                    grid = state.grid[peerId]!!,
-                    destroyed = state.destroyed.filter { it.player == peerId },
-                    active = state.currentTurn == peerId && state.status == Status.IN_PROGRESS,
-                    onColumnTap = null,
-                    modifier = Modifier.testTag("peer-board"),
-                    registry = hitRegistry,
+                    isMine = true,
+                    name = state.playerName(myId),
+                    grid = state.grid[myId]!!,
+                    destroyed = state.destroyed.filter { it.player == myId },
+                    active = state.currentTurn == myId && state.status == Status.IN_PROGRESS,
+                    onColumnTap = onPlaceColumn,
+                    modifier = Modifier.testTag("own-board"),
                 )
             }
             if (peerDisconnected || errorText != null) {
@@ -261,13 +257,7 @@ private fun RollArea(
     onDiceTap: () -> Unit,
     onPlaceColumn: (Int) -> Unit,
     peerId: PlayerId,
-    registry: ColumnHitRegistry,
 ) {
-    val placeable = if (canPlace) {
-        state.grid[myId]!!.mapIndexed { i, col -> col.size < KnucklebonesRules.COLUMN_SIZE }
-    } else {
-        listOf(false, false, false)
-    }
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         TurnPill(state = state, myId = myId, peerId = peerId)
         Spacer(Modifier.height(10.dp))
@@ -292,14 +282,6 @@ private fun RollArea(
         if (canPlace) {
             Spacer(Modifier.height(8.dp))
             Text(stringResource(R.string.place_hint), style = MaterialTheme.typography.bodySmall, color = Ivory)
-            Spacer(Modifier.height(8.dp))
-            DraggableDieToken(
-                value = state.lastRoll ?: return@Column,
-                placeable = placeable,
-                grid = state.grid[myId]!!,
-                onPlaceColumn = onPlaceColumn,
-                registry = registry,
-            )
             Spacer(Modifier.height(8.dp))
         }
     }
@@ -334,7 +316,6 @@ private fun GameBoard(
     active: Boolean,
     onColumnTap: ((Int) -> Unit)?,
     modifier: Modifier = Modifier,
-    registry: ColumnHitRegistry? = null,
 ) {
     val score = KnucklebonesRules.totalScore(grid)
     val own = isMine
@@ -371,9 +352,8 @@ private fun GameBoard(
                             onColumnTap?.invoke(col)
                         },
                         cellTag = (if (own) "own-cell-" else "peer-cell-") + col + "-",
-                        colIndex = col,
-                        registry = registry,
                         columnLabel = (if (own) "own column " else "peer column ") + col,
+                        anchorTop = isMine,
                     )
                     Spacer(Modifier.height(4.dp))
                     ColumnScoreChip(
@@ -406,9 +386,8 @@ private fun DieColumn(
     placeable: Boolean,
     onTap: () -> Unit,
     cellTag: String,
-    colIndex: Int,
-    registry: ColumnHitRegistry? = null,
     columnLabel: String,
+    anchorTop: Boolean,
 ) {
     val base = Modifier.size(52.dp).padding(3.dp)
     val emptyColor = GlassWhite.copy(alpha = 0.25f)
@@ -423,27 +402,47 @@ private fun DieColumn(
             .border(1.dp, borderColor, RoundedCornerShape(10.dp))
             .semantics { contentDescription = columnLabel }
             .clickable(enabled = placeable) { onTap() }
-            .onGloballyPositioned { registry?.update(colIndex, it.boundsInRoot()) }
             .testTag("column"),
     ) {
-        // 3 rows; bottom-anchored: empty rows first, then dice from the bottom.
+        // Middle-outward stacking: own (bottom) board is top-anchored (dice
+        // first, empties last); peer (top) board is bottom-anchored.
         val emptyRows = 3 - dice.size
         for (row in 0 until 3) {
-            if (row < emptyRows) {
-                Box(
-                    Modifier
-                        .then(base)
-                        .background(emptyColor, RoundedCornerShape(8.dp)),
-                ) {}
+            if (anchorTop) {
+                if (row < dice.size) {
+                    val dieValue = dice[row]
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .then(base)
+                            .background(GlassWhite, RoundedCornerShape(8.dp)),
+                    ) {
+                        Text("$dieValue", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = Ivory)
+                    }
+                } else {
+                    Box(
+                        Modifier
+                            .then(base)
+                            .background(emptyColor, RoundedCornerShape(8.dp)),
+                    ) {}
+                }
             } else {
-                val dieValue = dice[row - emptyRows]
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier
-                        .then(base)
-                        .background(GlassWhite, RoundedCornerShape(8.dp)),
-                ) {
-                    Text("$dieValue", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = Ivory)
+                if (row < emptyRows) {
+                    Box(
+                        Modifier
+                            .then(base)
+                            .background(emptyColor, RoundedCornerShape(8.dp)),
+                    ) {}
+                } else {
+                    val dieValue = dice[row - emptyRows]
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .then(base)
+                            .background(GlassWhite, RoundedCornerShape(8.dp)),
+                    ) {
+                        Text("$dieValue", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = Ivory)
+                    }
                 }
             }
         }
@@ -475,64 +474,4 @@ private fun DestroyGhosts(destroyed: List<DieRef>) {
         }
     }
     Spacer(Modifier.height(4.dp))
-}
-
-/** Registers board-column screen bounds so [DraggableDieToken] can drop on them. */
-private class ColumnHitRegistry {
-    val bounds = mutableMapOf<Int, Rect>()
-
-    fun update(column: Int, rect: Rect) {
-        bounds[column] = rect
-    }
-
-    fun columnAt(position: Offset): Int? = bounds.entries
-        .firstOrNull { it.value.contains(position) }
-        ?.key
-}
-
-/** Overlays a draggable die token; on release, places on the column under the pointer. */
-@Composable
-private fun DraggableDieToken(
-    value: Int,
-    placeable: List<Boolean>,
-    grid: Grid,
-    onPlaceColumn: (Int) -> Unit,
-    registry: ColumnHitRegistry,
-) {
-    // Shared registry (hoisted in GameScreenContent): own-board columns register
-    // their boundsInRoot here, so the drop center resolves to the right column.
-    // NOTE: placeable/grid are carried for a future highlight refinement.
-    var offset by remember { mutableStateOf(IntOffset.Zero) }
-    var basePosition by remember { mutableStateOf(Offset.Zero) }
-
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier = Modifier
-            .offset { offset }
-            .size(52.dp)
-            .background(Gold, RoundedCornerShape(10.dp))
-            .semantics { stateDescription = "draggable-die" }
-            .testTag("place-token")
-            .onGloballyPositioned { basePosition = it.positionInRoot() }
-            .pointerInput(value) {
-                detectDragGestures(
-                    onDragStart = {},
-                    onDrag = { change, drag ->
-                        change.consume()
-                        offset += IntOffset(drag.x.roundToInt(), drag.y.roundToInt())
-                    },
-                    onDragEnd = {
-                        val center = basePosition + Offset(
-                            offset.x + 26.dp.toPx(),
-                            offset.y + 26.dp.toPx(),
-                        )
-                        registry.columnAt(center)?.let(onPlaceColumn)
-                        offset = IntOffset.Zero
-                    },
-                    onDragCancel = { offset = IntOffset.Zero },
-                )
-            },
-    ) {
-        Text("$value", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = Ivory)
-    }
 }
