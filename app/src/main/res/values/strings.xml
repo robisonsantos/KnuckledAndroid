@@ -7,7 +7,7 @@
     <string name="fake_link">Fake link</string>
     <string name="fake_link_on">Debug: using in-process fake Bluetooth. No real devices needed.</string>
     <string name="fake_link_off">Real Bluetooth mode. Two phones required.</string>
-    <string name="onboarding_hint">Host on one phone, join from the other — first to fill a 3x3 grid wins.</string>
+    <string name="onboarding_hint">Host on one phone, join from the other — when a 3x3 grid fills up, the highest score wins.</string>
     <string name="dismiss">Dismiss</string>
     <string name="cancel">Cancel</string>
     <string name="pairing_code">Pairing code</string>
