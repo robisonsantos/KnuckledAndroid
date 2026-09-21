@@ -4,10 +4,34 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
+import java.io.File
+import java.io.FileInputStream
+import java.util.Properties
+
+// Release signing credentials live in local.properties (gitignored) and the
+// keystore at ~/.config/knucklegame/release.keystore (outside the repo).
+// Without them the release APK builds unsigned.
+val kgProps = Properties().apply {
+    val f = rootProject.file("local.properties")
+    if (f.exists()) FileInputStream(f).use(::load)
+}
+
 android {
     namespace = "com.example.knucklegame"
     compileSdk {
         version = release(37)
+    }
+
+    // Release signing credentials live in local.properties (gitignored) and the
+    // keystore at ~/.config/knucklegame/release.keystore (outside the repo).
+    // Without them the release APK builds unsigned.
+    signingConfigs {
+        create("release") {
+            storeFile = File(System.getProperty("user.home"), ".config/knucklegame/release.keystore")
+            storePassword = kgProps.getProperty("kg.storePassword")
+            keyAlias = "knucklegame"
+            keyPassword = kgProps.getProperty("kg.keyPassword")
+        }
     }
 
     defaultConfig {
@@ -22,6 +46,9 @@ android {
 
     buildTypes {
         release {
+            if (kgProps.getProperty("kg.storePassword") != null) {
+                signingConfig = signingConfigs.getByName("release")
+            }
             optimization {
                 enable = false
             }
