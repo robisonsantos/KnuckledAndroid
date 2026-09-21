@@ -1,16 +1,20 @@
 appId: com.example.knucklegame
 ---
-- launchApp
-- tapOn:
-    id: "fake-switch"
-- tapOn:
-    id: "name-field"
-- inputText: "Client"
-- tapOn:
-    id: "join-button"
-- tapOn:
-    id: "device-row"
-- tapOn:
-    id: "pin-input"
+- launchApp:
+    clearState: true
+- tapOn: Fake link
+- tapOn: Your name
+- inputText: Client
+- hideKeyboard
+- tapOn: Join a game
+- extendedWaitUntil:
+    visible: Fake Peer
+    timeout: 10000
+- tapOn: Fake Peer
+- extendedWaitUntil:
+    visible: Enter the code shown on the host phone
+    timeout: 10000
 - inputText: "0000"
-- assertVisible: "Wrong code. Try again."
+- extendedWaitUntil:
+    visible: Wrong code. Try again.
+    timeout: 10000
