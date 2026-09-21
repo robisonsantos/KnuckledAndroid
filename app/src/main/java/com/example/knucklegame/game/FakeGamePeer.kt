@@ -12,27 +12,8 @@ object FakeGamePeer {
         grid.indices.first { !KnucklebonesRules.columnFull(grid, it) }
 }
 
-private fun delayed(delayMs: Long, block: () -> Unit) {
-    Thread {
-        try {
-            Thread.sleep(delayMs)
-        } catch (_: InterruptedException) {
-        }
-        try {
-            block()
-        } catch (_: Exception) {
-            // link may be closed
-        }
-    }.apply {
-        name = "fake-peer"
-        isDaemon = true
-        start()
-    }
-}
-
 /** Bot playing the client side: sends NAME, rolls on its turn, places in the first open column. */
 fun runFakeClient(link: GameLink) {
-    link.send(GameMessages.encodeName(FakeGamePeer.NAME))
     link.onLine = client@{ line ->
         val state = GameMessages.decodeState(line) ?: return@client
         if (KnucklebonesRules.canRoll(state, PlayerId.CLIENT)) {
@@ -43,6 +24,7 @@ fun runFakeClient(link: GameLink) {
             delayed(FakeGamePeer.REACT_DELAY_MS) { link.send(GameMessages.encodePlace(col)) }
         }
     }
+    link.send(GameMessages.encodeName(FakeGamePeer.NAME))
 }
 
 /** Bot playing the host side via a [GameHost], for when the app connects as a client in fake mode. */

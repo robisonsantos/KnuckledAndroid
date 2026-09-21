@@ -109,6 +109,7 @@ class MainActivity : ComponentActivity() {
                 KnuckleGameApp(
                     connectionViewModel = connectionViewModel,
                     onHostClick = ::onHostClick,
+                    onPlayCpuClick = { connectionViewModel.startSinglePlayer() },
                     onFindClick = ::onFindClick,
                     onSubmitPin = ::onSubmitPin,
                     soundManager = soundManager,
@@ -120,6 +121,15 @@ class MainActivity : ComponentActivity() {
             }
         }
         if (maestroFake && intent.getStringExtra("maestro_auto") == "host") onHostClick()
+        val maestroSingle = BuildConfig.DEBUG && intent.getStringExtra("maestro_single") == "1"
+        if (maestroSingle) {
+            if (connectionViewModel.playerName.isBlank()) connectionViewModel.onPlayerNameChange("Maestro")
+            if (intent.getStringExtra("maestro_fast") == "1") {
+                connectionViewModel.cpuPreRollDelayMs = 0L
+                connectionViewModel.cpuThinkDelay = { 0L }
+            }
+            connectionViewModel.startSinglePlayer()
+        }
     }
 
     override fun onDestroy() {
