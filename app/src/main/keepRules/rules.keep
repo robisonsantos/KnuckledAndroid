@@ -10,3 +10,7 @@
 #-keepclassmembers class fqcn.of.javascript.interface.for.webview {
 #   public *;
 #}
+
+# SceneView loads the GLB model by string path; keep the asset and node types.
+-keep class io.github.sceneview.** { *; }
+-keep class com.google.android.filament.** { *; }
