@@ -25,6 +25,7 @@ class GameViewModel(
     private val hostName: String? = null,
     private val clientName: String? = null,
     private val rollValue: () -> Int = { (1..6).random() },
+    private val rollDelayMs: Long = 2000L,
     private val onPeerDisconnected: (() -> Unit)? = null,
 ) : ViewModel() {
 
@@ -61,6 +62,7 @@ class GameViewModel(
                 link = link,
                 hostName = hostName ?: "Host",
                 rollValue = rollValue,
+                rollDelayMs = rollDelayMs,
                 onState = { _state.value = it },
             )
             host = gameHost

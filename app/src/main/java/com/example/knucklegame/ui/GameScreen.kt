@@ -49,6 +49,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
@@ -183,13 +184,13 @@ private fun GameScreenContent(
             } else {
                 val peerId = state.opponentOf(myId)
                 GameBoard(
-                    isMine = false,
-                    name = state.playerName(peerId),
-                    grid = state.grid[peerId]!!,
-                    destroyed = state.destroyed,
-                    active = state.currentTurn == peerId && state.status == Status.IN_PROGRESS,
-                    onColumnTap = null,
-                    modifier = Modifier.testTag("peer-board"),
+                    isMine = true,
+                    name = state.playerName(myId),
+                    grid = state.grid[myId]!!,
+                    destroyed = state.destroyed.filter { it.player == myId },
+                    active = state.currentTurn == myId && state.status == Status.IN_PROGRESS,
+                    onColumnTap = onPlaceColumn,
+                    modifier = Modifier.testTag("own-board"),
                     registry = hitRegistry,
                 )
                 Spacer(Modifier.height(14.dp))
@@ -205,13 +206,13 @@ private fun GameScreenContent(
                 )
                 Spacer(Modifier.height(14.dp))
                 GameBoard(
-                    isMine = true,
-                    name = state.playerName(myId),
-                    grid = state.grid[myId]!!,
-                    destroyed = emptyList(),
-                    active = state.currentTurn == myId && state.status == Status.IN_PROGRESS,
-                    onColumnTap = onPlaceColumn,
-                    modifier = Modifier.testTag("own-board"),
+                    isMine = false,
+                    name = state.playerName(peerId),
+                    grid = state.grid[peerId]!!,
+                    destroyed = state.destroyed.filter { it.player == peerId },
+                    active = state.currentTurn == peerId && state.status == Status.IN_PROGRESS,
+                    onColumnTap = null,
+                    modifier = Modifier.testTag("peer-board"),
                     registry = hitRegistry,
                 )
             }
@@ -270,12 +271,24 @@ private fun RollArea(
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         TurnPill(state = state, myId = myId, peerId = peerId)
         Spacer(Modifier.height(10.dp))
-        DiceCube(
-            value = state.lastRoll,
-            rolling = state.phase == Phase.ROLLING,
-            enabled = canRoll,
-            onTap = onDiceTap,
-        )
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier.semantics { contentDescription = "roll die" },
+        ) {
+            // SurfaceView (SceneView) renders above the translucent result
+            // overlay, so remove the 3D die once the game is over and keep a
+            // same-size Spacer so the layout doesn't shift underneath it.
+            if (state.status == Status.IN_PROGRESS) {
+                DiceCube(
+                    value = state.lastRoll,
+                    rolling = state.phase == Phase.ROLLING,
+                    enabled = canRoll,
+                    onTap = onDiceTap,
+                )
+            } else {
+                Spacer(Modifier.size(120.dp))
+            }
+        }
         if (canPlace) {
             Spacer(Modifier.height(8.dp))
             Text(stringResource(R.string.place_hint), style = MaterialTheme.typography.bodySmall, color = Ivory)
@@ -336,6 +349,7 @@ private fun GameBoard(
                 "$score",
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
+                color = Ivory,
                 modifier = Modifier.testTag(if (own) "score-mine" else "score-peer"),
             )
         }
@@ -359,6 +373,7 @@ private fun GameBoard(
                         cellTag = (if (own) "own-cell-" else "peer-cell-") + col + "-",
                         colIndex = col,
                         registry = registry,
+                        columnLabel = (if (own) "own column " else "peer column ") + col,
                     )
                     Spacer(Modifier.height(4.dp))
                     ColumnScoreChip(
@@ -393,6 +408,7 @@ private fun DieColumn(
     cellTag: String,
     colIndex: Int,
     registry: ColumnHitRegistry? = null,
+    columnLabel: String,
 ) {
     val base = Modifier.size(52.dp).padding(3.dp)
     val emptyColor = GlassWhite.copy(alpha = 0.25f)
@@ -405,6 +421,7 @@ private fun DieColumn(
         modifier = Modifier
             .padding(2.dp)
             .border(1.dp, borderColor, RoundedCornerShape(10.dp))
+            .semantics { contentDescription = columnLabel }
             .clickable(enabled = placeable) { onTap() }
             .onGloballyPositioned { registry?.update(colIndex, it.boundsInRoot()) }
             .testTag("column"),

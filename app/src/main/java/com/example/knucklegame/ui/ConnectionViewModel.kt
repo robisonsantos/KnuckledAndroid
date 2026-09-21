@@ -73,6 +73,12 @@ class ConnectionViewModel(application: Application) : AndroidViewModel(applicati
         reset()
     }
 
+    fun setFakeMode(enabled: Boolean) {
+        if (!BuildConfig.DEBUG) return
+        if (inFakeMode == enabled) return
+        toggleFakeMode()
+    }
+
     fun onHostClicked() {
         val sanitized = GameMessages.sanitizeName(playerName)
         if (sanitized.isBlank()) {

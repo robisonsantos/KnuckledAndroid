@@ -95,6 +95,15 @@ class MainActivity : ComponentActivity() {
         val animationsEnabled =
             !(BuildConfig.DEBUG && intent.getBooleanExtra("disableIdleAnimations", false))
         enableEdgeToEdge()
+        val maestroFake = BuildConfig.DEBUG && intent.getStringExtra("maestro_fake") == "1"
+        if (maestroFake) {
+            connectionViewModel.setFakeMode(true)
+            if (connectionViewModel.playerName.isBlank()) connectionViewModel.onPlayerNameChange("Maestro")
+        }
+        val maestroSeed = if (BuildConfig.DEBUG) intent.getStringExtra("maestro_seed")?.toLongOrNull() else null
+        val maestroRng = maestroSeed?.let { kotlin.random.Random(it) }
+        val maestroRollValue: () -> Int = if (maestroRng != null) ({ maestroRng.nextInt(1, 7) }) else ({ (1..6).random() })
+        val maestroRollDelay = if (BuildConfig.DEBUG && intent.getStringExtra("maestro_fast") == "1") 0L else 2000L
         setContent {
             KnuckleGameTheme {
                 KnuckleGameApp(
@@ -105,9 +114,12 @@ class MainActivity : ComponentActivity() {
                     soundManager = soundManager,
                     settings = settings,
                     animationsEnabled = animationsEnabled,
+                    rollValue = maestroRollValue,
+                    rollDelayMs = maestroRollDelay,
                 )
             }
         }
+        if (maestroFake && intent.getStringExtra("maestro_auto") == "host") onHostClick()
     }
 
     override fun onDestroy() {

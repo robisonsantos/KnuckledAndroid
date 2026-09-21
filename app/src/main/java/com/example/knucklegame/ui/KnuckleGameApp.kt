@@ -39,6 +39,8 @@ fun KnuckleGameApp(
     soundManager: SoundManager = NoopSoundManager,
     settings: Settings? = null,
     animationsEnabled: Boolean = true,
+    rollValue: () -> Int = { (1..6).random() },
+    rollDelayMs: Long = 2000L,
 ) {
     var showHint by remember { mutableStateOf(settings?.onboardingSeen == false) }
     CompositionLocalProvider(
@@ -78,6 +80,8 @@ fun KnuckleGameApp(
                                     hostName = if (myId == PlayerId.HOST) connectionViewModel.sanitizedPlayerName else null,
                                     clientName = if (myId == PlayerId.CLIENT) connectionViewModel.sanitizedPlayerName else null,
                                     onPeerDisconnected = { connectionViewModel.onPeerDisconnected() },
+                                    rollValue = rollValue,
+                                    rollDelayMs = rollDelayMs,
                                 ) as T
                             }
                         },

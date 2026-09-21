@@ -61,7 +61,13 @@ fun DiceCube(
     animationsEnabled: Boolean = LocalAnimationsEnabled.current,
 ) {
     val sound = LocalSoundManager.current
-    val diceLabel = stringResource(R.string.dice)
+    val diceBase = stringResource(R.string.dice)
+    val diceLabel = when {
+        rolling -> "$diceBase rolling"
+        value != null -> "$diceBase showing $value"
+        enabled -> "$diceBase tap to roll"
+        else -> diceBase
+    }
 
     val engine = rememberEngine()
     val scene = rememberScene(engine)
