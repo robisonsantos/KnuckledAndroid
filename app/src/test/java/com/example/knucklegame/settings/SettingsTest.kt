@@ -34,4 +34,12 @@ class SettingsTest {
         Settings(prefs).onboardingSeen = true
         assertEquals(true, Settings(prefs).onboardingSeen)
     }
+
+    @Test
+    fun autoRollDefaultsFalseAndPersists() {
+        val prefs = FakePrefs()
+        assertEquals(false, Settings(prefs).autoRoll)
+        Settings(prefs).autoRoll = true
+        assertEquals(true, Settings(prefs).autoRoll)
+    }
 }

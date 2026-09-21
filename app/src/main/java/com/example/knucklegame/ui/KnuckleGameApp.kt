@@ -43,6 +43,7 @@ fun KnuckleGameApp(
     rollDelayMs: Long = 2000L,
 ) {
     var showHint by remember { mutableStateOf(settings?.onboardingSeen == false) }
+    var autoRoll by remember { mutableStateOf(settings?.autoRoll ?: false) }
     CompositionLocalProvider(
         LocalSoundManager provides soundManager,
         LocalAnimationsEnabled provides animationsEnabled,
@@ -91,6 +92,11 @@ fun KnuckleGameApp(
                             GameScreen(
                                 viewModel = gameViewModel,
                                 onDisconnect = { connectionViewModel.disconnect() },
+                                autoRoll = autoRoll,
+                                onToggleAutoRoll = {
+                                    autoRoll = !autoRoll
+                                    settings?.autoRoll = autoRoll
+                                },
                             )
                         }
                     }

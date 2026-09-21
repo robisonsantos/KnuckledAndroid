@@ -80,7 +80,7 @@ fun StartScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        Text("⚄", fontSize = 56.sp, color = DieIvoryLight)
+        Text("⚂", fontSize = 56.sp, color = DieIvoryLight)
         Text(
             stringResource(R.string.app_name),
             style = MaterialTheme.typography.headlineLarge,

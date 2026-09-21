@@ -24,6 +24,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.VolumeOff
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
+import androidx.compose.material.icons.filled.Casino
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -70,7 +71,12 @@ private const val RESULT_OVERLAY_DELAY_MS = 1_200L
 
 @Suppress("UNUSED") // Wired to GameViewModel (Task 11); kept for the nav graph in KnuckleGameApp.
 @Composable
-fun GameScreen(viewModel: GameViewModel, onDisconnect: () -> Unit) {
+fun GameScreen(
+    viewModel: GameViewModel,
+    onDisconnect: () -> Unit,
+    autoRoll: Boolean = false,
+    onToggleAutoRoll: () -> Unit = {},
+) {
     val state by viewModel.state.collectAsState()
     val error by viewModel.errorText.collectAsState()
     val peerGone by viewModel.peerDisconnected.collectAsState()
@@ -88,6 +94,8 @@ fun GameScreen(viewModel: GameViewModel, onDisconnect: () -> Unit) {
         onToggleMute = { sound.setMuted(!muted) },
         peerDisconnected = peerGone,
         errorText = error,
+        autoRoll = autoRoll,
+        onToggleAutoRoll = onToggleAutoRoll,
     )
 }
 
@@ -104,6 +112,8 @@ fun GameScreen(
     onToggleMute: () -> Unit = {},
     peerDisconnected: Boolean = false,
     errorText: String? = null,
+    autoRoll: Boolean = false,
+    onToggleAutoRoll: () -> Unit = {},
 ) {
     GameScreenContent(
         state = state,
@@ -117,6 +127,8 @@ fun GameScreen(
         onToggleMute = onToggleMute,
         peerDisconnected = peerDisconnected,
         errorText = errorText,
+        autoRoll = autoRoll,
+        onToggleAutoRoll = onToggleAutoRoll,
     )
 }
 
@@ -133,6 +145,8 @@ private fun GameScreenContent(
     onToggleMute: () -> Unit,
     peerDisconnected: Boolean,
     errorText: String?,
+    autoRoll: Boolean = false,
+    onToggleAutoRoll: () -> Unit = {},
 ) {
     var showResultOverlay by remember { mutableStateOf(false) }
     val context = LocalContext.current
@@ -151,6 +165,14 @@ private fun GameScreenContent(
         if (state?.status == Status.FINISHED || state?.status == Status.DRAW) {
             delay(RESULT_OVERLAY_DELAY_MS)
             showResultOverlay = true
+        }
+    }
+    LaunchedEffect(state, autoRoll) {
+        val gridsNonEmpty = state?.grid?.values?.any { cols -> cols.any { it.isNotEmpty() } } == true
+        if (autoRoll && state != null && state.status == Status.IN_PROGRESS &&
+            state.phase == Phase.IDLE && state.currentTurn == myId && gridsNonEmpty
+        ) {
+            onDiceTap()
         }
     }
 
@@ -174,6 +196,13 @@ private fun GameScreenContent(
                             if (muted) Icons.AutoMirrored.Filled.VolumeOff else Icons.AutoMirrored.Filled.VolumeUp,
                             contentDescription = stringResource(if (muted) R.string.unmute else R.string.mute),
                             tint = Gold,
+                        )
+                    }
+                    IconButton(onClick = onToggleAutoRoll, modifier = Modifier.testTag("auto-roll")) {
+                        Icon(
+                            Icons.Filled.Casino,
+                            contentDescription = if (autoRoll) "Auto-roll on" else "Auto-roll off",
+                            tint = if (autoRoll) Gold else Color.Gray,
                         )
                     }
                 },
@@ -320,46 +349,92 @@ private fun GameBoard(
     val score = KnucklebonesRules.totalScore(grid)
     val own = isMine
     Column(modifier = modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-        Row(
-            Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(name, style = MaterialTheme.typography.titleMedium, color = Gold)
-            Text(
-                "$score",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-                color = Ivory,
-                modifier = Modifier.testTag(if (own) "score-mine" else "score-peer"),
-            )
-        }
-        Spacer(Modifier.height(6.dp))
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-            for (col in 0 until 3) {
-                val full = grid[col].size >= KnucklebonesRules.COLUMN_SIZE
-                val canTap = onColumnTap != null && !full && active
-                val target = destroyed.filter { it.column == col }
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.testTag((if (own) "own-col-" else "peer-col-") + col),
-                ) {
-                    DieColumn(
-                        dice = grid[col],
-                        destroyed = target,
-                        placeable = canTap,
-                        onTap = {
-                            onColumnTap?.invoke(col)
-                        },
-                        cellTag = (if (own) "own-cell-" else "peer-cell-") + col + "-",
-                        columnLabel = (if (own) "own column " else "peer column ") + col,
-                        anchorTop = isMine,
-                    )
-                    Spacer(Modifier.height(4.dp))
-                    ColumnScoreChip(
-                        value = KnucklebonesRules.columnScore(grid[col]),
-                        tag = (if (own) "own-score-" else "peer-score-") + col,
-                    )
+        if (own) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+                for (col in 0 until 3) {
+                    val full = grid[col].size >= KnucklebonesRules.COLUMN_SIZE
+                    val canTap = onColumnTap != null && !full && active
+                    val target = destroyed.filter { it.column == col }
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.testTag((if (own) "own-col-" else "peer-col-") + col),
+                    ) {
+                        ColumnScoreChip(
+                            value = KnucklebonesRules.columnScore(grid[col]),
+                            tag = (if (own) "own-score-" else "peer-score-") + col,
+                        )
+                        Spacer(Modifier.height(4.dp))
+                        DieColumn(
+                            dice = grid[col],
+                            destroyed = target,
+                            placeable = canTap,
+                            onTap = {
+                                onColumnTap?.invoke(col)
+                            },
+                            cellTag = (if (own) "own-cell-" else "peer-cell-") + col + "-",
+                            columnLabel = (if (own) "own column " else "peer column ") + col,
+                            anchorTop = isMine,
+                        )
+                    }
+                }
+            }
+            Spacer(Modifier.height(6.dp))
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(name, style = MaterialTheme.typography.titleMedium, color = Gold)
+                Text(
+                    "$score",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = Ivory,
+                    modifier = Modifier.testTag(if (own) "score-mine" else "score-peer"),
+                )
+            }
+        } else {
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(name, style = MaterialTheme.typography.titleMedium, color = Gold)
+                Text(
+                    "$score",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = Ivory,
+                    modifier = Modifier.testTag(if (own) "score-mine" else "score-peer"),
+                )
+            }
+            Spacer(Modifier.height(6.dp))
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+                for (col in 0 until 3) {
+                    val full = grid[col].size >= KnucklebonesRules.COLUMN_SIZE
+                    val canTap = onColumnTap != null && !full && active
+                    val target = destroyed.filter { it.column == col }
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.testTag((if (own) "own-col-" else "peer-col-") + col),
+                    ) {
+                        DieColumn(
+                            dice = grid[col],
+                            destroyed = target,
+                            placeable = canTap,
+                            onTap = {
+                                onColumnTap?.invoke(col)
+                            },
+                            cellTag = (if (own) "own-cell-" else "peer-cell-") + col + "-",
+                            columnLabel = (if (own) "own column " else "peer column ") + col,
+                            anchorTop = isMine,
+                        )
+                        Spacer(Modifier.height(4.dp))
+                        ColumnScoreChip(
+                            value = KnucklebonesRules.columnScore(grid[col]),
+                            tag = (if (own) "own-score-" else "peer-score-") + col,
+                        )
+                    }
                 }
             }
         }

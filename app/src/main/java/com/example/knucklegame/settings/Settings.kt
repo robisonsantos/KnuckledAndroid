@@ -23,4 +23,8 @@ class Settings(private val prefs: Prefs) {
     var onboardingSeen: Boolean
         get() = prefs.getBoolean("onboarding_seen", false)
         set(value) = prefs.putBoolean("onboarding_seen", value)
+
+    var autoRoll: Boolean
+        get() = prefs.getBoolean("auto_roll", false)
+        set(value) = prefs.putBoolean("auto_roll", value)
 }
