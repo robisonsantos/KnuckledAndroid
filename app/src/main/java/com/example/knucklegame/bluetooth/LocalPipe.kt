@@ -7,8 +7,8 @@ import java.io.PipedInputStream
 import java.io.PipedOutputStream
 import java.util.concurrent.LinkedBlockingQueue
 
-/** Builds a pair of in-process [GameLink]s connected through pipes, so a bot can play both
- * sides of a session with no transport. */
+/** Builds a pair of in-process [GameLink]s connected through pipes, so a session can run
+ * with no transport (single-player vs CPU, or fake-mode peers). */
 object LocalPipe {
 
     /** Returns two [GameLink]s whose streams form a loopback pair. */
@@ -41,12 +41,10 @@ object LocalPipe {
             try {
                 while (true) {
                     val data = queue.take()
-                    if (data.isEmpty() && closed) break
                     if (data.isNotEmpty()) {
                         delegate.write(data)
                         delegate.flush()
                     }
-                    if (data.isEmpty() && closed) break
                 }
             } catch (_: InterruptedException) {
             } catch (_: IOException) {
