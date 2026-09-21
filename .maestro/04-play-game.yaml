@@ -1,0 +1,27 @@
+appId: com.example.knucklegame
+---
+- launchApp:
+    clearState: true
+- tapOn: Fake link
+- tapOn: Your name
+- inputText: Host
+- hideKeyboard
+- tapOn: Host a game
+- extendedWaitUntil:
+    visible: FakePeer
+    timeout: 15000
+# Play 3 turns: tap the 3D die to roll, then tap the middle column to place.
+# Points are used because the die (SurfaceView) and board columns expose no text.
+- repeat:
+    times: 3
+    commands:
+      - extendedWaitUntil:
+          visible: Your turn
+          timeout: 30000
+      - tapOn:
+          point: 50%,57%
+      - extendedWaitUntil:
+          visible: Drag the die to a column, or tap a column
+          timeout: 15000
+      - tapOn:
+          point: 50%,78%
