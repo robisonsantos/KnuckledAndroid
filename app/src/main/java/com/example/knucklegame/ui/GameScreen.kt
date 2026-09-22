@@ -25,6 +25,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.VolumeOff
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.Casino
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -149,6 +150,7 @@ private fun GameScreenContent(
     onToggleAutoRoll: () -> Unit = {},
 ) {
     var showResultOverlay by remember { mutableStateOf(false) }
+    var showLeaveConfirm by remember { mutableStateOf(false) }
     val context = LocalContext.current
     LaunchedEffect(state?.currentTurn, state?.status) {
         if (state?.status == Status.IN_PROGRESS && state.currentTurn == myId) {
@@ -186,7 +188,7 @@ private fun GameScreenContent(
         ) {
             DiceGameTopBar(
                 leading = {
-                    TextButton(onClick = onLeave, modifier = Modifier.testTag("leave")) {
+                    TextButton(onClick = { showLeaveConfirm = true }, modifier = Modifier.testTag("leave")) {
                         Text(stringResource(R.string.leave))
                     }
                 },
@@ -251,6 +253,33 @@ private fun GameScreenContent(
                     )
                 }
             }
+        }
+        if (showLeaveConfirm) {
+            AlertDialog(
+                modifier = Modifier.testTag("leave-confirm"),
+                onDismissRequest = { showLeaveConfirm = false },
+                title = { Text(stringResource(R.string.leave_confirm_title)) },
+                text = { Text(stringResource(R.string.leave_confirm_message)) },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            showLeaveConfirm = false
+                            onLeave()
+                        },
+                        modifier = Modifier.testTag("confirm-leave"),
+                    ) {
+                        Text(stringResource(R.string.leave))
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = { showLeaveConfirm = false },
+                        modifier = Modifier.testTag("stay"),
+                    ) {
+                        Text(stringResource(R.string.stay))
+                    }
+                },
+            )
         }
         if (state != null && showResultOverlay) {
             when (state.status) {

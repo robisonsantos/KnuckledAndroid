@@ -15,6 +15,9 @@
     <string name="waiting_for_device">Waiting for a device…</string>
     <string name="enter_pin_title">Enter the code shown on the host phone</string>
     <string name="leave">Leave</string>
+    <string name="leave_confirm_title">Leave game?</string>
+    <string name="leave_confirm_message">Are you sure you want to leave? Your progress in this game will be lost.</string>
+    <string name="stay">Stay</string>
     <string name="play_again">Play again</string>
     <string name="disconnect">Disconnect</string>
     <string name="your_turn">Your turn</string>
