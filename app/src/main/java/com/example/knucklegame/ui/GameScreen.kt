@@ -479,46 +479,32 @@ private fun DieColumn(
             .clickable(enabled = placeable) { onTap() }
             .testTag("column"),
     ) {
-        // Middle-outward stacking: own (bottom) board is top-anchored (dice
-        // first, empties last); peer (top) board is bottom-anchored.
-        val emptyRows = 3 - dice.size
+        // Outward stacking from the middle: own (bottom) board is top-anchored
+        // (oldest die closest to the middle, at the top); peer (top) board is
+        // bottom-anchored with oldest at the bottom (closest to the middle),
+        // newest stacking on top. See ColumnDisplay for the tested mapping.
+        val rows = if (anchorTop) {
+            ColumnDisplay.ownColumnTopToBottom(dice)
+        } else {
+            ColumnDisplay.topColumnTopToBottom(dice)
+        }
         for (row in 0 until 3) {
-            if (anchorTop) {
-                if (row < dice.size) {
-                    val dieValue = dice[row]
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier
-                            .then(base)
-                            .background(GlassWhite, RoundedCornerShape(8.dp)),
-                    ) {
-                        Text("$dieValue", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = Ivory)
-                    }
-                } else {
-                    Box(
-                        Modifier
-                            .then(base)
-                            .background(emptyColor, RoundedCornerShape(8.dp)),
-                    ) {}
+            val dieValue = rows[row]
+            if (dieValue != null) {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .then(base)
+                        .background(GlassWhite, RoundedCornerShape(8.dp)),
+                ) {
+                    Text("$dieValue", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = Ivory)
                 }
             } else {
-                if (row < emptyRows) {
-                    Box(
-                        Modifier
-                            .then(base)
-                            .background(emptyColor, RoundedCornerShape(8.dp)),
-                    ) {}
-                } else {
-                    val dieValue = dice[row - emptyRows]
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier
-                            .then(base)
-                            .background(GlassWhite, RoundedCornerShape(8.dp)),
-                    ) {
-                        Text("$dieValue", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = Ivory)
-                    }
-                }
+                Box(
+                    Modifier
+                        .then(base)
+                        .background(emptyColor, RoundedCornerShape(8.dp)),
+                ) {}
             }
         }
     }
