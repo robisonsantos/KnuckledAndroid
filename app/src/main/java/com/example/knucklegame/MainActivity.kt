@@ -19,8 +19,8 @@ import com.example.knucklegame.audio.SoundManager
 import com.example.knucklegame.settings.AndroidPrefs
 import com.example.knucklegame.settings.Settings
 import com.example.knucklegame.ui.ConnectionViewModel
-import com.example.knucklegame.ui.KnuckleGameApp
-import com.example.knucklegame.ui.theme.KnuckleGameTheme
+import com.example.knucklegame.ui.KnuckledApp
+import com.example.knucklegame.ui.theme.KnuckledTheme
 
 class MainActivity : ComponentActivity() {
 
@@ -51,7 +51,7 @@ class MainActivity : ComponentActivity() {
             onReady?.invoke()
         } else {
             connectionViewModel.showError(
-                deniedMessage ?: "A required permission was not granted. Enable it in Settings > Apps > KnuckleGame, then retry.",
+                deniedMessage ?: "A required permission was not granted. Enable it in Settings > Apps > Knuckled, then retry.",
             )
         }
     }
@@ -105,8 +105,8 @@ class MainActivity : ComponentActivity() {
         val maestroRollValue: () -> Int = if (maestroRng != null) ({ maestroRng.nextInt(1, 7) }) else ({ (1..6).random() })
         val maestroRollDelay = if (BuildConfig.DEBUG && intent.getStringExtra("maestro_fast") == "1") 0L else 2000L
         setContent {
-            KnuckleGameTheme {
-                KnuckleGameApp(
+            KnuckledTheme {
+                KnuckledApp(
                     connectionViewModel = connectionViewModel,
                     onHostClick = ::onHostClick,
                     onPlayCpuClick = { connectionViewModel.startSinglePlayer() },
@@ -144,7 +144,7 @@ class MainActivity : ComponentActivity() {
         }
         requestOrRun(
             permissionsForConnect() + permissionsForAdvertise(),
-            deniedMessage = "Bluetooth permission was denied. Allow it in Settings > Apps > KnuckleGame, then retry.",
+            deniedMessage = "Bluetooth permission was denied. Allow it in Settings > Apps > Knuckled, then retry.",
         ) {
             ensureBluetoothEnabled {
                 ensureDiscoverable {
@@ -161,7 +161,7 @@ class MainActivity : ComponentActivity() {
         }
         requestOrRun(
             permissionsForScan(),
-            deniedMessage = "The Nearby devices permission was denied. Allow it in Settings > Apps > KnuckleGame, then retry.",
+            deniedMessage = "The Nearby devices permission was denied. Allow it in Settings > Apps > Knuckled, then retry.",
         ) {
             ensureBluetoothEnabled {
                 connectionViewModel.onDiscoverClicked()
@@ -176,7 +176,7 @@ class MainActivity : ComponentActivity() {
         }
         requestOrRun(
             permissionsForConnect(),
-            deniedMessage = "Bluetooth permission was denied. Allow it in Settings > Apps > KnuckleGame, then retry.",
+            deniedMessage = "Bluetooth permission was denied. Allow it in Settings > Apps > Knuckled, then retry.",
         ) {
             ensureBluetoothEnabled {
                 connectionViewModel.onPinEntered(pin)

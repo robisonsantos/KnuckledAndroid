@@ -9,7 +9,7 @@ object Protocol {
     const val MAX_FRAME_BYTES = 1024
     const val DEFAULT_ENCODING = "UTF-8"
     const val RFCOMM_UUID = "00001101-0000-1000-8000-00805f9b34fb"
-    const val BT_SERVICE_NAME = "KnuckleGame"
+    const val BT_SERVICE_NAME = "Knuckled"
 
     fun encode(line: String): ByteArray = "$line\n".toByteArray(Charsets.UTF_8)
 

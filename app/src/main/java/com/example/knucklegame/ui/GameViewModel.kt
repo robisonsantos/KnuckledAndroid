@@ -17,7 +17,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-private const val TAG = "KnuckleGame"
+private const val TAG = "Knuckled"
 
 class GameViewModel(
     private val link: GameLink,

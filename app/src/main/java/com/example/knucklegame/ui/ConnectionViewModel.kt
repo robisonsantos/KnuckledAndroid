@@ -20,7 +20,7 @@ import com.example.knucklegame.bluetooth.PinGenerator
 import com.example.knucklegame.game.CpuPacing
 import com.example.knucklegame.game.GameMessages
 
-private const val TAG = "KnuckleGame"
+private const val TAG = "Knuckled"
 
 sealed interface ConnectionState {
     data object Start : ConnectionState

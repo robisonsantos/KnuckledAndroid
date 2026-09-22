@@ -31,7 +31,7 @@ import com.example.knucklegame.settings.Settings
 import com.example.knucklegame.ui.components.FeltBackground
 
 @Composable
-fun KnuckleGameApp(
+fun KnuckledApp(
     connectionViewModel: ConnectionViewModel,
     onHostClick: () -> Unit,
     onPlayCpuClick: () -> Unit,

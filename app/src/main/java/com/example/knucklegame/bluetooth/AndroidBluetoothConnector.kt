@@ -10,7 +10,7 @@ import android.util.Log
 import java.io.IOException
 import java.util.UUID
 
-private const val TAG = "KnuckleGame"
+private const val TAG = "Knuckled"
 
 class AndroidBluetoothConnector(
     private val context: Context,

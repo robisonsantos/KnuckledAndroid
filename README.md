@@ -1,4 +1,4 @@
-# KnuckleGame
+# Knuckled
 
 A game based on the Cult of the Lamb's "Knucklebones".
 It's a two players game, where players tries to fill in a 3x3 grid with dice rolls, in turns, until one player can fill their whole grid.

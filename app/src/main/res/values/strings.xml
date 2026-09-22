@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">KnuckleGame</string>
+    <string name="app_name">Knuckled</string>
     <string name="your_name">Your name</string>
     <string name="host_game">Host a game</string>
     <string name="join_game">Join a game</string>

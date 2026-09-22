@@ -70,7 +70,7 @@ import kotlinx.coroutines.delay
 
 private const val RESULT_OVERLAY_DELAY_MS = 1_200L
 
-@Suppress("UNUSED") // Wired to GameViewModel (Task 11); kept for the nav graph in KnuckleGameApp.
+@Suppress("UNUSED") // Wired to GameViewModel (Task 11); kept for the nav graph in KnuckledApp.
 @Composable
 fun GameScreen(
     viewModel: GameViewModel,

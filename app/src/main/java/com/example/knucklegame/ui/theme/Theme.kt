@@ -26,7 +26,7 @@ private val EmeraldColorScheme = darkColorScheme(
 )
 
 @Composable
-fun KnuckleGameTheme(content: @Composable () -> Unit) {
+fun KnuckledTheme(content: @Composable () -> Unit) {
     MaterialTheme(
         colorScheme = EmeraldColorScheme,
         typography = Typography,
