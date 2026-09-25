@@ -6,6 +6,8 @@ Adds a native iOS app (iPhone + iPad) for Knuckled and lets iPhone/iPad play aga
 
 Decision: **Approach A** — a shared wire contract, but two independent native codebases (Kotlin/Compose on Android, Swift/SwiftUI on iOS). No Kotlin Multiplatform sharing; the ported logic is small and stable, and each platform keeps its idiomatic BLE/3D/audio APIs.
 
+Mirror note: the iOS app lives in a separate repo — `~/XcodeProjects/KnuckleGame-ios`. This spec is the Android repo's copy of the contract and the Android-side design; the iOS repo mirrors the contract with the iOS design (`docs/superpowers/specs/2026-09-24-crossplay-ios-design.md`). The wire/JSON format is frozen; either repo may extend it only with a coordinated change.
+
 ## Goals
 
 - iPhone/iPad ↔ Android cross-play over Bluetooth using the same PIN + line-protocol idea the Android app already has.
@@ -86,7 +88,7 @@ Android permissions required by BLE (`BLUETOOTH_SCAN`, `BLUETOOTH_CONNECT`, `BLU
 
 ## Part 3 — iOS app
 
-Native Swift 6 / SwiftUI app at **`ios/Knuckled/`** in this repo. iOS 17+ minimum, iPhone + iPad, both orientations. Timeline: XCTest unit tests + XCUITest; physical devices required for real BLE validation (GATT signaling doesn't work on simulator-paired radios).
+Native Swift 6 / SwiftUI app in the sibling iOS repo **`~/XcodeProjects/KnuckleGame-ios`**. iOS 17+ minimum, iPhone + iPad, both orientations. XCTest unit tests + XCUITest; physical devices required for real BLE validation (GATT signaling doesn't work on simulator-paired radios).
 
 ### Code layout
 
@@ -131,12 +133,12 @@ Vertically-stacked boards on every device (column-vs-column comparison is core t
 
 ## Part 5 — Phasing
 
-One spec (this document) is the single source of truth for the contract and assets. Sequential implementation plans, each independently testable:
+One contract spec lives in each repo (this one in the Android repo, its mirror in the iOS repo). Sequential implementation plans, each independently testable; the iOS plans are authored and tracked in the iOS repo:
 
-1. **Android BLE transport** — `BleBytePipe` + `AndroidBleConnector`, framing unit tests, transport toggle UI, Android↔Android BLE happy path on hardware.
-2. **iOS core** — project scaffold; `Models`/`Rules`/`Networking`/`Game` ports with unit tests; fake-link game loop runnable on simulator (no radio).
-3. **iOS BLE + cross-play** — CoreBluetooth host/client, Info.plist, `BleGameLink`; cross-play matrix on hardware (both host directions).
-4. **iOS parity polish** — SceneKit die (asset spike first), audio, settings toggles, iPad sizing, CPU mode, XCUITest, release config.
+1. **Android BLE transport** *(this repo)* — `BleBytePipe` + `AndroidBleConnector`, framing unit tests, transport toggle UI, Android↔Android BLE happy path on hardware.
+2. **iOS core** *(iOS repo)* — project scaffold; `Models`/`Rules`/`Networking`/`Game` ports with unit tests; fake-link game loop runnable on simulator (no radio).
+3. **iOS BLE + cross-play** *(iOS repo)* — CoreBluetooth host/client, Info.plist, `BleGameLink`; cross-play matrix on hardware (both host directions).
+4. **iOS parity polish** *(iOS repo)* — SceneKit die (asset spike first), audio, settings toggles, iPad sizing, CPU mode, XCUITest, release config.
 
 If any plan oversizes, it splits further (single-player-mode precedent).
 
