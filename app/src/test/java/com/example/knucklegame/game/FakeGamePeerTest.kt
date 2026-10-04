@@ -1,17 +1,19 @@
 package com.example.knucklegame.game
 
 import com.example.knucklegame.FakeGameLink
+import com.example.knucklegame.bluetooth.GameLink
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.util.concurrent.atomic.AtomicInteger
 
 class FakeGamePeerTest {
 
     @Test
     fun `fake client plays a full session to a draw or finish`() {
         val hostLink = FakeGameLink()
-        val counter = java.util.concurrent.atomic.AtomicInteger(0)
+        val counter = AtomicInteger(0)
         val gh = GameHost(
             link = hostLink,
             hostName = FakeGamePeer.HOST_NAME,
@@ -23,7 +25,7 @@ class FakeGamePeerTest {
         gh.connect()
         val clientLines = mutableListOf<String>()
         var forwarded = 0
-        lateinit var botLink: com.example.knucklegame.bluetooth.GameLink
+        lateinit var botLink: GameLink
         fun pumpToBot() {
             while (forwarded < hostLink.sent.size) {
                 val hostLine = hostLink.sent[forwarded++]
@@ -32,7 +34,7 @@ class FakeGamePeerTest {
                 }
             }
         }
-        botLink = object : com.example.knucklegame.bluetooth.GameLink {
+        botLink = object : GameLink {
             override var onLine: (String) -> Unit = {}
             override var onClosed: () -> Unit = {}
             override fun send(line: String) {

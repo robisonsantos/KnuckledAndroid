@@ -28,6 +28,7 @@ class GameHost(
                 state = KnucklebonesRules.reset(hostName, GameMessages.sanitizeName(name), first!!)
                 publish()
             }
+
             GameMessages.isRoll(line) -> rollFor(PlayerId.CLIENT)
             GameMessages.decodePlace(line) != null -> placeFor(PlayerId.CLIENT, GameMessages.decodePlace(line)!!)
             GameMessages.isRestart(line) -> restart()
@@ -59,7 +60,7 @@ class GameHost(
 
     fun restart() {
         if (!KnucklebonesRules.canRestart(state)) return
-        val firstPlayerNow = first ?: firstPlayer()
+        val firstPlayerNow = if (first == PlayerId.HOST) PlayerId.CLIENT else PlayerId.HOST
         first = firstPlayerNow
         state = KnucklebonesRules.reset(state.hostName, state.clientName, firstPlayerNow)
         publish()
