@@ -1,11 +1,14 @@
 package com.example.knucklegame.game
 
 import com.example.knucklegame.FakeGameLink
+import com.example.knucklegame.game.KnucklebonesRules.emptyGrid
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.util.concurrent.atomic.AtomicInteger
+import kotlin.reflect.KMutableProperty
+import kotlin.reflect.full.memberProperties
+import kotlin.reflect.jvm.isAccessible
 
 class GameHostTest {
 
@@ -78,8 +81,10 @@ class GameHostTest {
             gameHost.hostPlace(0)
             // client's turn → client asks to roll
             link.receive(GameMessages.encodeRoll())
-            assertTrue(lastStateSent(link).phase == Phase.AWAITING_PLACEMENT &&
-                lastStateSent(link).currentTurn == PlayerId.CLIENT)
+            assertTrue(
+                lastStateSent(link).phase == Phase.AWAITING_PLACEMENT &&
+                        lastStateSent(link).currentTurn == PlayerId.CLIENT
+            )
             link.receive(GameMessages.encodePlace(1))
             val state = lastStateSent(link)
             assertEquals(PlayerId.HOST, state.currentTurn)
@@ -105,19 +110,27 @@ class GameHostTest {
     }
 
     @Test
-    fun `restart keeps names and the same first player but fresh boards`() {
+    fun `restart keeps names and switch first player and refreshes boards`() {
         val link = FakeGameLink()
         host(link, PlayerId.HOST) { gameHost ->
             gameHost.connect()
             link.receive(GameMessages.encodeName("Bob"))
             // force finished
-            var finished = lastStateSent(link).copy(status = Status.FINISHED, winner = PlayerId.HOST)
-            val gh = gameHost
-            // drive a quick full-ish game is heavy; instead call restart directly after marking finished via reflection-free path:
-            // We can't set state directly; simulate by finishing through the host's restart guard: restart only allowed when FINISHED.
-            // So: play a full game to completion (see fullGameTest). Skipping; this test only verifies idempotent guard.
-            val before = gh
-            assertTrue(true) // placeholder replaced by full-game flow in FakeGamePeerTest
+            val finishedState = lastStateSent(link).copy(status = Status.FINISHED, winner = PlayerId.HOST)
+            val gameState = GameHost::class.memberProperties.find { it.name == "state" } as? KMutableProperty<*>
+            gameState?.isAccessible = true
+            gameState?.setter?.call(gameHost, finishedState)
+
+            gameHost.restart()
+            assertEquals(PlayerId.CLIENT, gameHost.state.currentTurn)
+            assertEquals("Host", gameHost.state.hostName)
+            assertEquals("Bob", gameHost.state.clientName)
+
+            val resetGrid = mapOf(
+                PlayerId.HOST to emptyGrid(),
+                PlayerId.CLIENT to emptyGrid(),
+            )
+            assertEquals(resetGrid, gameHost.state.grid)
         }
     }
 
@@ -138,16 +151,17 @@ class GameHostTest {
         link.receive(GameMessages.encodeName("Bob"))
         var guard = 0
         while (finished?.status == Status.IN_PROGRESS && guard < 300) {
-            val s = finished ?: lastStateSent(link)
+            val s: GameState = finished
             if (KnucklebonesRules.canRoll(s, s.currentTurn)) {
                 if (s.currentTurn == PlayerId.HOST) gh.hostRoll() else link.receive(GameMessages.encodeRoll())
             } else {
-                val col = s.grid[s.currentTurn]!!.indices.first { !KnucklebonesRules.columnFull(s.grid[s.currentTurn]!!, it) }
+                val col =
+                    s.grid[s.currentTurn]!!.indices.first { !KnucklebonesRules.columnFull(s.grid[s.currentTurn]!!, it) }
                 if (s.currentTurn == PlayerId.HOST) gh.hostPlace(col) else link.receive(GameMessages.encodePlace(col))
             }
             guard += 1
         }
-        assertTrue("game should finish (steps=$guard)", finished != null && finished!!.status != Status.IN_PROGRESS)
-        assertEquals(finished!!.status, if (finished!!.status == Status.DRAW) Status.DRAW else Status.FINISHED)
+        assertTrue("game should finish (steps=$guard)", finished != null && finished.status != Status.IN_PROGRESS)
+        assertEquals(finished!!.status, if (finished.status == Status.DRAW) Status.DRAW else Status.FINISHED)
     }
 }

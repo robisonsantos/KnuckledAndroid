@@ -1,16 +1,18 @@
 package com.example.knucklegame.game
 
 import com.example.knucklegame.FakeGameLink
+import com.example.knucklegame.bluetooth.GameLink
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.util.concurrent.atomic.AtomicInteger
 
 class CpuClientTest {
 
     private fun playFullGame(firstPlayer: PlayerId): GameState {
         val hostLink = FakeGameLink()
-        val counter = java.util.concurrent.atomic.AtomicInteger(0)
+        val counter = AtomicInteger(0)
         val gh = GameHost(
             link = hostLink,
             hostName = "Human",
@@ -21,7 +23,7 @@ class CpuClientTest {
         )
         gh.connect()
         val forwarded = intArrayOf(0)
-        lateinit var botLink: com.example.knucklegame.bluetooth.GameLink
+        lateinit var botLink: GameLink
         fun pumpToBot() {
             while (forwarded[0] < hostLink.sent.size) {
                 val hostLine = hostLink.sent[forwarded[0]++]
@@ -30,7 +32,7 @@ class CpuClientTest {
                 }
             }
         }
-        botLink = object : com.example.knucklegame.bluetooth.GameLink {
+        botLink = object : GameLink {
             override var onLine: (String) -> Unit = {}
             override var onClosed: () -> Unit = {}
             override fun send(line: String) {
@@ -75,7 +77,7 @@ class CpuClientTest {
     @Test
     fun `cpu keeps playing after a restart`() {
         val hostLink = FakeGameLink()
-        val counter = java.util.concurrent.atomic.AtomicInteger(0)
+        val counter = AtomicInteger(0)
         val gh = GameHost(
             link = hostLink,
             hostName = "Human",
@@ -86,7 +88,7 @@ class CpuClientTest {
         )
         gh.connect()
         val forwarded = intArrayOf(0)
-        lateinit var botLink: com.example.knucklegame.bluetooth.GameLink
+        lateinit var botLink: GameLink
         fun pumpToBot() {
             while (forwarded[0] < hostLink.sent.size) {
                 val hostLine = hostLink.sent[forwarded[0]++]
@@ -95,7 +97,7 @@ class CpuClientTest {
                 }
             }
         }
-        botLink = object : com.example.knucklegame.bluetooth.GameLink {
+        botLink = object : GameLink {
             override var onLine: (String) -> Unit = {}
             override var onClosed: () -> Unit = {}
             override fun send(line: String) {
@@ -133,6 +135,7 @@ class CpuClientTest {
         assertEquals(CpuPlayer.NAME, gh.state.clientName)
         playWhileInProgress()
         assertTrue("second game should finish", gh.state.status != Status.IN_PROGRESS)
-        assertEquals(9, gh.state.grid[PlayerId.CLIENT]!!.flatten().size)
+        assertEquals(8, gh.state.grid[PlayerId.CLIENT]!!.flatten().size)
+        assertEquals(9, gh.state.grid[PlayerId.HOST]!!.flatten().size)
     }
 }
