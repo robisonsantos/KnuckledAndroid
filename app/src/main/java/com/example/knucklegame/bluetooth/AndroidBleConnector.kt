@@ -40,10 +40,10 @@ class AndroidBleConnector(private val context: Context) : BluetoothConnector {
         private val onCloseResources: () -> Unit,
     ) : GameLink by delegate {
         override fun close() {
-            delegate.close()
             try {
-                onCloseResources()
-            } catch (_: Exception) {
+                delegate.close()
+            } finally {
+                try { onCloseResources() } catch (_: Exception) { }
             }
         }
     }
@@ -201,14 +201,12 @@ class AndroidBleConnector(private val context: Context) : BluetoothConnector {
             throw e
         }
         // 30s connect cap (documented; callers already background connect).
-        val pipe = BleBytePipe(onChunk = {})
         val connected = CountDownLatch(1)
         val ready = CountDownLatch(1)
         var readyOk = false
         val subscribedAck = CountDownLatch(1)
         var subscribedOk = false
         val mtuLatch = CountDownLatch(1)
-        var gattRef: BluetoothGatt? = null
         // write path needs the gatt + characteristic; set after discovery.
         lateinit var writeTarget: Pair<BluetoothGatt, BluetoothGattCharacteristic>
         val chunkPipe = BleBytePipe(onChunk = { chunk ->
@@ -219,12 +217,10 @@ class AndroidBleConnector(private val context: Context) : BluetoothConnector {
         val callback = object : BluetoothGattCallback() {
             override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
                 if (newState == BluetoothProfile.STATE_CONNECTED) {
-                    gattRef = gatt
                     connected.countDown()
                     gatt.discoverServices()
                 } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                     chunkPipe.close()
-                    pipe.close()
                     connected.countDown()
                     ready.countDown()
                     subscribedAck.countDown()
