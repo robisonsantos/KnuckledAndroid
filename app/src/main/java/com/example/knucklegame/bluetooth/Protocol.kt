@@ -10,6 +10,9 @@ object Protocol {
     const val DEFAULT_ENCODING = "UTF-8"
     const val RFCOMM_UUID = "00001101-0000-1000-8000-00805f9b34fb"
     const val BT_SERVICE_NAME = "Knuckled"
+    const val BLE_SERVICE_UUID = "8B6B4A85-57B3-4BE8-ACDE-BE209FBAAE7A"
+    const val BLE_WRITE_UUID = "AAF90241-0F50-42CF-ADFC-2BAADE92ACD1"
+    const val BLE_NOTIFY_UUID = "3FE6B62B-8DF0-4B4D-BB7E-8048B74461AA"
 
     fun encode(line: String): ByteArray = "$line\n".toByteArray(Charsets.UTF_8)
 
