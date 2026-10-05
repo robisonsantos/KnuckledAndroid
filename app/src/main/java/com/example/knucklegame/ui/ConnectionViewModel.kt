@@ -9,6 +9,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import com.example.knucklegame.BuildConfig
+import com.example.knucklegame.bluetooth.AndroidBleConnector
 import com.example.knucklegame.bluetooth.AndroidBluetoothConnector
 import com.example.knucklegame.bluetooth.BluetoothConnector
 import com.example.knucklegame.bluetooth.DeviceInfo
@@ -36,6 +37,20 @@ class ConnectionViewModel(application: Application) : AndroidViewModel(applicati
 
     private val androidConnector = AndroidBluetoothConnector(application)
     private val fakeConnector = FakeBluetoothConnector()
+
+    enum class Transport { RFCOMM, BLE }
+    private val bleConnector by lazy { AndroidBleConnector(application) }
+    var transport: Transport = Transport.RFCOMM
+    @JvmName("setTransportMode")
+    fun setTransport(t: Transport) {
+        transport = t
+        refreshConnector()
+    }
+
+    private fun refreshConnector() {
+        activeConnector = if (inFakeMode) fakeConnector
+            else if (transport == Transport.BLE) bleConnector else androidConnector
+    }
 
     var inFakeMode by mutableStateOf(false)
         private set
@@ -74,7 +89,7 @@ class ConnectionViewModel(application: Application) : AndroidViewModel(applicati
     fun toggleFakeMode() {
         if (!BuildConfig.DEBUG) return
         inFakeMode = !inFakeMode
-        activeConnector = if (inFakeMode) fakeConnector else androidConnector
+        refreshConnector()
         reset()
     }
 

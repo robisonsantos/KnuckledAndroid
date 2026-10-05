@@ -113,6 +113,8 @@ fun KnuckledApp(
                                     onFindClick = onFindClick,
                                     isFakeMode = connectionViewModel.inFakeMode,
                                     onToggleFake = connectionViewModel::toggleFakeMode,
+                                    transport = connectionViewModel.transport,
+                                    onTransportChange = connectionViewModel::setTransport,
                                     showHint = showHint,
                                     onDismissHint = {
                                         settings?.onboardingSeen = true

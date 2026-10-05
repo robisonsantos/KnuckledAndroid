@@ -35,4 +35,6 @@
     <string name="peer_disconnected">Peer disconnected</string>
     <string name="dice">Dice</string>
     <string name="column_score">Col %1$d</string>
+    <string name="transport_classic">Classic</string>
+    <string name="transport_ble">BLE</string>
 </resources>

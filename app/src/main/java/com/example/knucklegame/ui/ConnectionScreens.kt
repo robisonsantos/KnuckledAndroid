@@ -69,6 +69,8 @@ fun StartScreen(
     onFindClick: () -> Unit,
     isFakeMode: Boolean,
     onToggleFake: () -> Unit,
+    transport: ConnectionViewModel.Transport,
+    onTransportChange: (ConnectionViewModel.Transport) -> Unit,
     showHint: Boolean,
     onDismissHint: () -> Unit,
     error: String? = null,
@@ -139,6 +141,23 @@ fun StartScreen(
             onClick = onFindClick,
             modifier = Modifier.testTag("join-button"),
         )
+        Spacer(Modifier.height(12.dp))
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.testTag("transport-picker"),
+        ) {
+            Text(
+                text = stringResource(R.string.transport_classic),
+                color = if (transport == ConnectionViewModel.Transport.RFCOMM) Gold else Color.Gray,
+                modifier = Modifier.clickable { onTransportChange(ConnectionViewModel.Transport.RFCOMM) }.testTag("transport-classic"),
+            )
+            Spacer(Modifier.width(16.dp))
+            Text(
+                text = stringResource(R.string.transport_ble),
+                color = if (transport == ConnectionViewModel.Transport.BLE) Gold else Color.Gray,
+                modifier = Modifier.clickable { onTransportChange(ConnectionViewModel.Transport.BLE) }.testTag("transport-ble"),
+            )
+        }
         Spacer(Modifier.height(16.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(
