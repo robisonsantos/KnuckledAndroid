@@ -6,6 +6,7 @@ appId: com.example.knucklegame
 - tapOn: Your name
 - inputText: Client
 - hideKeyboard
+- tapOn: Player vs Player
 - tapOn: Join a game
 - extendedWaitUntil:
     visible: Fake Peer

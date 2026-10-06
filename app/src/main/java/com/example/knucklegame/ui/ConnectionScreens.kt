@@ -58,19 +58,18 @@ import com.example.knucklegame.ui.components.PinDigitsDisplay
 import com.example.knucklegame.ui.components.PinDigitsInput
 import com.example.knucklegame.ui.theme.DieIvoryLight
 import com.example.knucklegame.ui.theme.DisplayFont
+import com.example.knucklegame.ui.theme.GlassBorderGold
 import com.example.knucklegame.ui.theme.Gold
+import com.example.knucklegame.ui.theme.Ivory
 
 @Composable
 fun StartScreen(
     name: String,
     onNameChange: (String) -> Unit,
-    onHostClick: () -> Unit,
     onPlayCpuClick: () -> Unit,
-    onFindClick: () -> Unit,
+    onPvpClick: () -> Unit,
     isFakeMode: Boolean,
     onToggleFake: () -> Unit,
-    transport: ConnectionViewModel.Transport,
-    onTransportChange: (ConnectionViewModel.Transport) -> Unit,
     showHint: Boolean,
     onDismissHint: () -> Unit,
     error: String? = null,
@@ -78,8 +77,11 @@ fun StartScreen(
 ) {
     val sound = LocalSoundManager.current
     val muted by sound.muted.collectAsState()
+    // Pinned layout: no imePadding() here (and adjustNothing in the manifest),
+    // so the keyboard never shoves content up. Tradeoff: the keyboard may
+    // cover lower content until dismissed.
     Column(
-        modifier = Modifier.fillMaxSize().imePadding().padding(24.dp),
+        modifier = Modifier.fillMaxSize().padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
@@ -110,18 +112,10 @@ fun StartScreen(
             }
             Spacer(Modifier.height(16.dp))
         }
-        OutlinedTextField(
-            value = name,
-            onValueChange = onNameChange,
-            label = { Text(stringResource(R.string.your_name)) },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth().testTag("name-field"),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Gold,
-                unfocusedBorderColor = com.example.knucklegame.ui.theme.GlassBorderGold,
-                focusedLabelColor = Gold,
-                cursorColor = Gold,
-            ),
+        NameField(
+            name = name,
+            onNameChange = onNameChange,
+            modifier = Modifier.testTag("name-field"),
         )
         Spacer(Modifier.height(24.dp))
         GoldButton(
@@ -131,33 +125,10 @@ fun StartScreen(
         )
         Spacer(Modifier.height(12.dp))
         GoldButton(
-            text = stringResource(R.string.host_game),
-            onClick = onHostClick,
-            modifier = Modifier.testTag("host-button"),
+            text = stringResource(R.string.pvp),
+            onClick = onPvpClick,
+            modifier = Modifier.testTag("pvp-button"),
         )
-        Spacer(Modifier.height(12.dp))
-        GoldSecondaryButton(
-            text = stringResource(R.string.join_game),
-            onClick = onFindClick,
-            modifier = Modifier.testTag("join-button"),
-        )
-        Spacer(Modifier.height(12.dp))
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.testTag("transport-picker"),
-        ) {
-            Text(
-                text = stringResource(R.string.transport_classic),
-                color = if (transport == ConnectionViewModel.Transport.RFCOMM) Gold else Color.Gray,
-                modifier = Modifier.clickable { onTransportChange(ConnectionViewModel.Transport.RFCOMM) }.testTag("transport-classic"),
-            )
-            Spacer(Modifier.width(16.dp))
-            Text(
-                text = stringResource(R.string.transport_ble),
-                color = if (transport == ConnectionViewModel.Transport.BLE) Gold else Color.Gray,
-                modifier = Modifier.clickable { onTransportChange(ConnectionViewModel.Transport.BLE) }.testTag("transport-ble"),
-            )
-        }
         Spacer(Modifier.height(16.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(
@@ -213,6 +184,127 @@ fun StartScreen(
 }
 
 @Composable
+private fun NameField(
+    name: String,
+    onNameChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    OutlinedTextField(
+        value = name,
+        onValueChange = onNameChange,
+        label = { Text(stringResource(R.string.your_name)) },
+        singleLine = true,
+        modifier = modifier.fillMaxWidth(),
+        colors = OutlinedTextFieldDefaults.colors(
+            // Contrast: input text must be ivory on the transparent field.
+            focusedTextColor = Ivory,
+            unfocusedTextColor = Ivory,
+            focusedBorderColor = Gold,
+            unfocusedBorderColor = GlassBorderGold,
+            focusedLabelColor = Gold,
+            unfocusedLabelColor = Gold,
+            cursorColor = Gold,
+        ),
+    )
+}
+
+@Composable
+fun TransportToggle(
+    transport: ConnectionViewModel.Transport,
+    onTransportChange: (ConnectionViewModel.Transport) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = modifier.testTag("transport-picker"),
+    ) {
+        Text(
+            text = stringResource(R.string.transport_classic),
+            color = if (transport == ConnectionViewModel.Transport.RFCOMM) Gold else Color.Gray,
+        )
+        Spacer(Modifier.width(8.dp))
+        Switch(
+            checked = transport == ConnectionViewModel.Transport.BLE,
+            onCheckedChange = { onTransportChange(if (it) ConnectionViewModel.Transport.BLE else ConnectionViewModel.Transport.RFCOMM) },
+            modifier = Modifier.testTag("transport-toggle"),
+        )
+        Spacer(Modifier.width(8.dp))
+        Text(
+            text = stringResource(R.string.transport_ble),
+            color = if (transport == ConnectionViewModel.Transport.BLE) Gold else Color.Gray,
+        )
+    }
+}
+
+@Composable
+fun PvpScreen(
+    name: String,
+    onNameChange: (String) -> Unit,
+    onHostClick: () -> Unit,
+    onFindClick: () -> Unit,
+    transport: ConnectionViewModel.Transport,
+    onTransportChange: (ConnectionViewModel.Transport) -> Unit,
+    onBack: () -> Unit,
+    error: String? = null,
+    onDismissError: () -> Unit = {},
+) {
+    Column(
+        modifier = Modifier.fillMaxSize().padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Text(
+            stringResource(R.string.pvp),
+            style = MaterialTheme.typography.headlineLarge,
+            fontFamily = DisplayFont,
+            color = Gold,
+            modifier = Modifier.testTag("pvp-title"),
+        )
+        Spacer(Modifier.height(16.dp))
+        NameField(
+            name = name,
+            onNameChange = onNameChange,
+            modifier = Modifier.testTag("name-field"),
+        )
+        Spacer(Modifier.height(24.dp))
+        GoldButton(
+            text = stringResource(R.string.host_game),
+            onClick = onHostClick,
+            modifier = Modifier.testTag("host-button"),
+        )
+        Spacer(Modifier.height(12.dp))
+        GoldSecondaryButton(
+            text = stringResource(R.string.join_game),
+            onClick = onFindClick,
+            modifier = Modifier.testTag("join-button"),
+        )
+        Spacer(Modifier.height(12.dp))
+        TransportToggle(
+            transport = transport,
+            onTransportChange = onTransportChange,
+        )
+        error?.let { message ->
+            Spacer(Modifier.height(16.dp))
+            GlassCard(modifier = Modifier.fillMaxWidth().testTag("error-banner")) {
+                Row(
+                    Modifier.fillMaxWidth().padding(12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(message, modifier = Modifier.weight(1f))
+                    TextButton(onClick = onDismissError) {
+                        Text(stringResource(R.string.dismiss))
+                    }
+                }
+            }
+        }
+        Spacer(Modifier.height(16.dp))
+        TextButton(onClick = onBack, modifier = Modifier.testTag("pvp-back")) {
+            Text(stringResource(R.string.back))
+        }
+    }
+}
+
+@Composable
 fun HostingScreen(pin: String, onCancel: () -> Unit = {}) {
     val animEnabled = LocalAnimationsEnabled.current
     val alpha = if (!animEnabled) {
@@ -226,7 +318,11 @@ fun HostingScreen(pin: String, onCancel: () -> Unit = {}) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        Text(stringResource(R.string.pairing_code), style = MaterialTheme.typography.titleMedium)
+        Text(
+            stringResource(R.string.pairing_code),
+            style = MaterialTheme.typography.titleMedium,
+            color = Gold,
+        )
         Spacer(Modifier.height(12.dp))
         PinDigitsDisplay(pin = pin, modifier = Modifier.testTag("pin-display"))
         Spacer(Modifier.height(24.dp))
@@ -319,7 +415,11 @@ fun EnterPinScreen(
             style = MaterialTheme.typography.bodyLarge,
         )
         Spacer(Modifier.height(8.dp))
-        Text(device.name ?: device.address, style = MaterialTheme.typography.titleMedium)
+        Text(
+            device.name ?: device.address,
+            style = MaterialTheme.typography.titleMedium,
+            color = Gold,
+        )
         Spacer(Modifier.height(16.dp))
         PinDigitsInput(onConfirm = onConfirm, shakeKey = shakeKey)
         Spacer(Modifier.height(16.dp))

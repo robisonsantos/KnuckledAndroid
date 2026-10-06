@@ -5,6 +5,8 @@
     <string name="host_game">Host a game</string>
     <string name="join_game">Join a game</string>
     <string name="play_vs_cpu">Play vs CPU</string>
+    <string name="pvp">Player vs Player</string>
+    <string name="back">Back</string>
     <string name="fake_link">Fake link</string>
     <string name="fake_link_on">Debug: using in-process fake Bluetooth. No real devices needed.</string>
     <string name="fake_link_off">Real Bluetooth mode. Two phones required.</string>

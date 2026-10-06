@@ -27,7 +27,7 @@
             android:name=".MainActivity"
             android:exported="true"
             android:theme="@style/Theme.Knuckled.Splash"
-            android:windowSoftInputMode="adjustResize">
+            android:windowSoftInputMode="adjustNothing">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

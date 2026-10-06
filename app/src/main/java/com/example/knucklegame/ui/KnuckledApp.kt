@@ -102,27 +102,40 @@ fun KnuckledApp(
                         }
                     }
                 } else {
+                    // No nav library: PvP submenu is local state in the caller.
+                    var showPvp by remember { mutableStateOf(false) }
                     Scaffold(containerColor = Color.Transparent, modifier = Modifier.fillMaxSize()) { inner ->
                         Box(Modifier.fillMaxSize().padding(inner).imePadding()) {
                             when (val s = connectionViewModel.state) {
-                                is ConnectionState.Start -> StartScreen(
-                                    name = connectionViewModel.playerName,
-                                    onNameChange = connectionViewModel::onPlayerNameChange,
-                                    onHostClick = onHostClick,
-                                    onPlayCpuClick = onPlayCpuClick,
-                                    onFindClick = onFindClick,
-                                    isFakeMode = connectionViewModel.inFakeMode,
-                                    onToggleFake = connectionViewModel::toggleFakeMode,
-                                    transport = connectionViewModel.transport,
-                                    onTransportChange = connectionViewModel::setTransport,
-                                    showHint = showHint,
+                                is ConnectionState.Start -> if (showPvp) {
+                                    PvpScreen(
+                                        name = connectionViewModel.playerName,
+                                        onNameChange = connectionViewModel::onPlayerNameChange,
+                                        onHostClick = onHostClick,
+                                        onFindClick = onFindClick,
+                                        transport = connectionViewModel.transport,
+                                        onTransportChange = connectionViewModel::setTransport,
+                                        onBack = { showPvp = false },
+                                        error = connectionViewModel.errorText,
+                                        onDismissError = connectionViewModel::dismissError,
+                                    )
+                                } else {
+                                    StartScreen(
+                                        name = connectionViewModel.playerName,
+                                        onNameChange = connectionViewModel::onPlayerNameChange,
+                                        onPlayCpuClick = onPlayCpuClick,
+                                        onPvpClick = { showPvp = true },
+                                        isFakeMode = connectionViewModel.inFakeMode,
+                                        onToggleFake = connectionViewModel::toggleFakeMode,
+                                        showHint = showHint,
                                     onDismissHint = {
                                         settings?.onboardingSeen = true
                                         showHint = false
                                     },
                                     error = connectionViewModel.errorText,
                                     onDismissError = connectionViewModel::dismissError,
-                                )
+                                    )
+                                }
                                 is ConnectionState.Hosting -> HostingScreen(
                                     pin = s.pin,
                                     onCancel = connectionViewModel::cancelCurrent,
