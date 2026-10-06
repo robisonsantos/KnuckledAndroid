@@ -202,6 +202,13 @@ fun StartScreen(
                 }
             }
         }
+        Spacer(Modifier.height(16.dp))
+        Text(
+            text = "v${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})",
+            style = MaterialTheme.typography.bodySmall,
+            color = Color.Gray,
+            modifier = Modifier.testTag("app-version"),
+        )
     }
 }
 
