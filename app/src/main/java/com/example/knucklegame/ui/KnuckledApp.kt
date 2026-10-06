@@ -10,7 +10,6 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -89,7 +88,9 @@ fun KnuckledApp(
                         },
                     )
                     Scaffold(containerColor = Color.Transparent, modifier = Modifier.fillMaxSize()) { inner ->
-                        Box(Modifier.fillMaxSize().padding(inner).imePadding()) {
+                        // Pinned layout: no imePadding() — the keyboard overlays
+                        // instead of shoving content (EnterPinScreen keeps its own).
+                        Box(Modifier.fillMaxSize().padding(inner)) {
                             GameScreen(
                                 viewModel = gameViewModel,
                                 onDisconnect = { connectionViewModel.disconnect() },
@@ -105,7 +106,7 @@ fun KnuckledApp(
                     // No nav library: PvP submenu is local state in the caller.
                     var showPvp by remember { mutableStateOf(false) }
                     Scaffold(containerColor = Color.Transparent, modifier = Modifier.fillMaxSize()) { inner ->
-                        Box(Modifier.fillMaxSize().padding(inner).imePadding()) {
+                        Box(Modifier.fillMaxSize().padding(inner)) {
                             when (val s = connectionViewModel.state) {
                                 is ConnectionState.Start -> if (showPvp) {
                                     PvpScreen(

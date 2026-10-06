@@ -138,6 +138,7 @@ fun StartScreen(
                 Icon(
                     if (muted) Icons.AutoMirrored.Filled.VolumeOff else Icons.AutoMirrored.Filled.VolumeUp,
                     contentDescription = stringResource(if (muted) R.string.unmute else R.string.mute),
+                    tint = Gold,
                 )
             }
             Spacer(Modifier.width(8.dp))
@@ -146,7 +147,7 @@ fun StartScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.clickable(onClick = onToggleFake).testTag("fake-switch"),
                 ) {
-                    Text(stringResource(R.string.fake_link), style = MaterialTheme.typography.bodySmall)
+                    Text(stringResource(R.string.fake_link), style = MaterialTheme.typography.bodySmall, color = Gold)
                     Spacer(Modifier.width(12.dp))
                     Switch(checked = isFakeMode, onCheckedChange = { onToggleFake() })
                 }
@@ -157,6 +158,7 @@ fun StartScreen(
             Text(
                 stringResource(if (isFakeMode) R.string.fake_link_on else R.string.fake_link_off),
                 style = MaterialTheme.typography.bodySmall,
+                color = Gold,
             )
         }
         error?.let { message ->
@@ -328,6 +330,7 @@ fun HostingScreen(pin: String, onCancel: () -> Unit = {}) {
         Spacer(Modifier.height(24.dp))
         Text(
             stringResource(R.string.waiting_for_device),
+            color = Gold,
             modifier = Modifier.alpha(alpha).testTag("hosting-status"),
         )
         Spacer(Modifier.height(24.dp))
@@ -344,7 +347,7 @@ fun DiscoverScreen(
 ) {
     Column(Modifier.fillMaxSize().padding(24.dp)) {
         if (status.isNotEmpty()) {
-            Text(status, modifier = Modifier.testTag("scan-status"))
+            Text(status, color = Gold, modifier = Modifier.testTag("scan-status"))
             Spacer(Modifier.height(12.dp))
         }
         if (devices.isEmpty()) {
@@ -355,8 +358,8 @@ fun DiscoverScreen(
             items(devices, key = { it.address }) { device ->
                 GlassCard(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
                     ListItem(
-                        headlineContent = { Text(device.name ?: device.address) },
-                        supportingContent = { Text(device.address) },
+                        headlineContent = { Text(device.name ?: device.address, color = Gold) },
+                        supportingContent = { Text(device.address, color = DieIvoryLight.copy(alpha = 0.7f)) },
                         leadingContent = {
                             Icon(Icons.Filled.Bluetooth, contentDescription = null, tint = Gold)
                         },
@@ -413,6 +416,7 @@ fun EnterPinScreen(
         Text(
             stringResource(R.string.enter_pin_title),
             style = MaterialTheme.typography.bodyLarge,
+            color = Gold,
         )
         Spacer(Modifier.height(8.dp))
         Text(
