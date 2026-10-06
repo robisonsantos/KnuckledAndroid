@@ -40,7 +40,7 @@ class ConnectionViewModel(application: Application) : AndroidViewModel(applicati
 
     enum class Transport { RFCOMM, BLE }
     private val bleConnector by lazy { AndroidBleConnector(application) }
-    var transport: Transport = Transport.RFCOMM
+    var transport: Transport by mutableStateOf(Transport.RFCOMM)
     @JvmName("setTransportMode")
     fun setTransport(t: Transport) {
         transport = t
